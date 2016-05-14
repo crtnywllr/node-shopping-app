@@ -8,11 +8,11 @@ function getItems() {
     });
     ajax.done(function(response) {
         itemList = response;
-        console.log(response);
         //Updating user view after each call
         $('.shopping-list').empty();
         for (var i=0; i < response.length; i++){
-            appendItem(response[i]._id);
+            var item = itemList[i];
+            appendItem(item);
         }
     });
 };
@@ -70,8 +70,10 @@ function clearList() {
 
 //append item
 //will need to be instructions to the GET ajax call of how to display the data
-function appendItem(itemValue) {
-    var row = $('<li><button class="checkbox"><i class="fa fa-check" aria-hidden="true"></i></button><span>' + itemValue + '</span><button class="delete"><i class="fa fa-remove" aria-hidden="true"></i></button></li>');
+function appendItem(item) {
+    //https://api.jquery.com/data/
+    //Each row would need to have _id as hidden data attribute
+    var row = $('<li data-id='+ item._id + '><button class="checkbox"><i class="fa fa-check" aria-hidden="true"></i></button><span>' + item.name + '</span><button class="delete"><i class="fa fa-remove" aria-hidden="true"></i></button></li>');
     //add after previous list items
     $('.shopping-list').append(row);
 }
@@ -80,29 +82,33 @@ function appendItem(itemValue) {
 //Step 2
 $(document).ready(function () {
     getItems();
-    /*on click(#add) function addItem()*/
     $('#add').on('click', function () {
         addItem();
     });
-    /*on click(.clear) function clearList ()*/
     $('.clear').on('click', function () {
             clearList();
         })
-        /*on click(.popular li) function addBottom ()*/
     $('.popular li').on('click', function () {
         var itemValue = $(this).text();
-        appendItem(itemValue);
-
+        var item = {
+            'name': itemValue
+        };
+         var ajax = $.ajax('/items', {
+            type: 'POST',
+            data: JSON.stringify(item),
+            dataType: 'json',
+            contentType: 'application/json'
+        });
+        ajax.done(function() {
+            getItems()
+        });
     })
 
 });
-/*on click (.checkbox) function checkItem()*/
 $(document).on('click', '.checkbox', checkItem);
-/*on click(.delete) function deleteItem ()*/
 $(document).on('click', '.delete', function() {
-   var id = ($(this).parent().text());
-   console.log(id);
-    deleteItem(id);
+   var id = ($(this).parent().data('id'));
+        deleteItem(id);
     });
     
 
